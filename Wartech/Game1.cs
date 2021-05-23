@@ -6,12 +6,17 @@ namespace Wartech
 {
     public class Game1 : Game
     {
-        private GraphicsDeviceManager _graphics;
-        private SpriteBatch _spriteBatch;
+        private GraphicsDeviceManager graphics;
+        private SpriteBatch spriteBatch;
+        private int hexWidth = 45;
+        private int hexHeight = 18;
+        private Texture2D hexTexture;
+        private int textureScale = 2;
+        private Vector2 camera = Vector2.Zero;
 
         public Game1()
         {
-            _graphics = new GraphicsDeviceManager(this);
+            graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }
@@ -20,14 +25,17 @@ namespace Wartech
         {
             // TODO: Add your initialization logic here
 
+            graphics.PreferredBackBufferWidth = 1600;
+            graphics.PreferredBackBufferHeight = 900;
+            graphics.ApplyChanges();
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
-            _spriteBatch = new SpriteBatch(GraphicsDevice);
+            spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            // TODO: use this.Content to load your game content here
+            hexTexture = Content.Load<Texture2D>("hex");
         }
 
         protected override void Update(GameTime gameTime)
@@ -45,7 +53,13 @@ namespace Wartech
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            // TODO: Add your drawing code here
+            spriteBatch.Begin();
+            for (int y = 0; y < 16; y++)
+                for (int x = 0; x < 16; x++)
+                    spriteBatch.Draw(hexTexture, new Vector2(
+                        (x * (hexWidth / 2)) * textureScale,
+                        ((y * hexHeight) + x * (9)) * textureScale), Color.White);
+            spriteBatch.End();
 
             base.Draw(gameTime);
         }
