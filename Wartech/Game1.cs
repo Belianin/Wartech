@@ -12,7 +12,7 @@ namespace Wartech
         private int hexHeight = 18;
         private Texture2D hexTexture;
         private int textureScale = 2;
-        private Vector2 camera = Vector2.Zero;
+        private Vector2 camera = new Vector2(-300, -100);
 
         public Game1()
         {
@@ -44,6 +44,16 @@ namespace Wartech
                 Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
+            var cameraSpeed = 2;
+            var state = Keyboard.GetState();
+            if (state.IsKeyDown(Keys.W))
+                camera.Y -= cameraSpeed;
+            else if (state.IsKeyDown(Keys.S))
+                camera.Y += cameraSpeed;
+            if (state.IsKeyDown(Keys.D))
+                camera.X += cameraSpeed;
+            else if (state.IsKeyDown(Keys.A))
+                camera.X -= cameraSpeed;
             // TODO: Add your update logic here
 
             base.Update(gameTime);
@@ -55,10 +65,17 @@ namespace Wartech
 
             spriteBatch.Begin();
             for (int y = 0; y < 16; y++)
-                for (int x = 0; x < 16; x++)
+            {
+                for (int x = 0; x < 18; x+=2)
                     spriteBatch.Draw(hexTexture, new Vector2(
-                        (x * (hexWidth / 2)) * textureScale,
-                        ((y * hexHeight) + x * (9)) * textureScale), Color.White);
+                        (x * (hexWidth / 2)) * textureScale - camera.X,
+                        ((y * hexHeight)) * textureScale - camera.Y), Color.White);
+                for (int x = 1; x < 16; x+=2)
+                    spriteBatch.Draw(hexTexture, new Vector2(
+                        (x * (hexWidth / 2)) * textureScale - camera.X,
+                        ((y * hexHeight) + (9)) * textureScale - camera.Y), Color.White);
+            }
+            
             spriteBatch.End();
 
             base.Draw(gameTime);
