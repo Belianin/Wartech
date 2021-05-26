@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -7,6 +8,7 @@ namespace Wartech
 {
     public class Game1 : Game
     {
+        private Level Level { get; set; }
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
         private int hexWidth = 45;
@@ -16,7 +18,14 @@ namespace Wartech
         private Vector2 camera = new Vector2(-300, -100);
         
         private Vector2 selectedHex = Vector2.Zero;
+        private Texture2D selectedHexTexture;
 
+        private Texture2D artTexture;
+
+        private Texture2D explosionTexture;
+
+        private List<Effect> effects = new List<Effect>();
+        
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -28,6 +37,7 @@ namespace Wartech
         {
             // TODO: Add your initialization logic here
 
+            Level = new Level();
             graphics.PreferredBackBufferWidth = 1600;
             graphics.PreferredBackBufferHeight = 900;
             graphics.ApplyChanges();
@@ -39,6 +49,11 @@ namespace Wartech
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             hexTexture = Content.Load<Texture2D>("hex");
+            selectedHexTexture = Content.Load<Texture2D>("selected_hex");
+
+            artTexture = Content.Load<Texture2D>("art");
+
+            explosionTexture = Content.Load<Texture2D>("a_explosion");
         }
 
         protected override void Update(GameTime gameTime)
@@ -63,6 +78,7 @@ namespace Wartech
             if (mouseState.LeftButton == ButtonState.Pressed)
             {
                 selectedHex = GetHexGameCoordinates(mouseState.X, mouseState.Y);
+                effects.Add(new Effect(new Vector2(mouseState.X + camera.X - 24, mouseState.Y + camera.Y - 40), explosionTexture, new Animation(64, 7, 7)));
             }
 
             base.Update(gameTime);
@@ -72,16 +88,35 @@ namespace Wartech
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
+            void DrawHex(int x, int y)
+            {
+                if (Level.Hexes[x, y] == null)
+                    return;
+                var coordinates = GetHexScreenCoordinates(x, y);
+                
+                spriteBatch.Draw(hexTexture, coordinates, Color.White);
+                if (Level.Hexes[x, y].Building != null)
+                {
+                    coordinates.Y -= 20;
+                    spriteBatch.Draw(artTexture, coordinates, Color.White);
+                }
+            }
+            
             spriteBatch.Begin();
             for (int y = 0; y < 16; y++)
             {
                 for (int x = 0; x < 18; x+=2)
-                    spriteBatch.Draw(hexTexture, GetHexScreenCoordinates(x, y), Color.White);
+                    DrawHex(x, y);
                 for (int x = 1; x < 16; x+=2)
-                    spriteBatch.Draw(hexTexture, GetHexScreenCoordinates(x, y), Color.White);
+                    DrawHex(x, y);
+            }
+
+            foreach (var effect in effects)
+            {
+                spriteBatch.Draw(effect, camera);
             }
             
-            spriteBatch.Draw(hexTexture, selectedHex, Color.Aqua);
+            spriteBatch.Draw(selectedHexTexture, GetHexScreenCoordinates((int) selectedHex.X, (int) selectedHex.Y), Color.White);
             spriteBatch.End();
 
             base.Draw(gameTime);
@@ -96,13 +131,9 @@ namespace Wartech
 
         private Vector2 GetHexGameCoordinates(int x, int y)
         {
-            Console.WriteLine($"{x + camera.X}:{y + camera.Y}");
-            var r = new Vector2(
+            return new Vector2(
                 (x + camera.X) / ((hexWidth / 2) * textureScale),
                 (((y + camera.Y) / textureScale) - ((x % 2) * 9)) / hexHeight);
-            Console.WriteLine($"{r.X}:{r.Y}");
-
-            return r;
         }
     }
 }
